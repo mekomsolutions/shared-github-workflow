@@ -64,7 +64,7 @@ jobs:
       - name: Build and Publish
         run: "mvn --batch-mode clean deploy ${{ inputs.maven-args }}"
       - name: Notify OCD3
-        uses: distributhor/workflow-webhook@v2
+        uses: distributhor/workflow-webhook@v3
         env:
           webhook_type: 'json-extended'
           webhook_url: ${{ inputs.webhook-url }}
