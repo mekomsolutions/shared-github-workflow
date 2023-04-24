@@ -6,10 +6,17 @@ on:
       maven-args:
         required: false
         type: string
+      webhook-url:
+        required: true
+        type: string
     secrets:
       MEKOM_NEXUS_USERNAME:
         required: true
       MEKOM_NEXUS_PASSWORD:
+        required: true
+      MEKOM_OCD3_USERNAME:
+        required: true
+      MEKOM_OCD3_PASSWORD:
         required: true
 
 jobs:
@@ -41,3 +48,9 @@ jobs:
             }]
       - name: Build and publish
         run: "mvn --batch-mode clean deploy ${{inputs.maven-args}}"
+      - name: Webhook
+        uses: distributhor/workflow-webhook
+        with:
+          webhook_type: 'json-extended'
+          webhook_url: "${{ inputs.webhook-url }}"
+          webhook_auth: "${{ secrets.MEKOM_OCD3_USERNAME }}:${{ secrets.MEKOM_OCD3_PASSWORD }}"
