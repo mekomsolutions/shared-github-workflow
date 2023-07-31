@@ -52,7 +52,12 @@ jobs:
         with:
           servers: |
             [{
-              "id": "mks-nexus-private",
+              "id": "mks-nexus-public-snapshots",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-public-releases",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             },
@@ -60,7 +65,13 @@ jobs:
               "id": "mks-nexus-private-snapshots",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
-            }]
+            },
+            {
+              "id": "mks-nexus-private-releases",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            }
+            ]
 
       - name: Publish
         run: "mvn --batch-mode clean deploy ${{ inputs.maven-args }}"
