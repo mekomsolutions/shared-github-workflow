@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up JDK 8
         uses: actions/setup-java@v2
@@ -32,14 +32,13 @@ jobs:
           distribution: 'temurin'
           java-version: '8'
       - name: Build
-        run: mvn --batch-mode clean package
-
+        run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
 
   publish:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up JDK 8
         uses: actions/setup-java@v2
@@ -61,8 +60,10 @@ jobs:
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             }]
-      - name: Build and Publish
+
+      - name: Publish
         run: "mvn --batch-mode clean deploy ${{ inputs.maven-args }}"
+
       - name: Notify OCD3
         uses: distributhor/workflow-webhook@v3
         env:
