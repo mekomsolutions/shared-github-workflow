@@ -31,6 +31,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '8'
+          cache: "maven"
       - name: Build
         run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
 
@@ -46,6 +47,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '8'
+          cache: "maven"
 
       - name: Set settings.xml
         uses: s4u/maven-settings-action@v2.8.0
