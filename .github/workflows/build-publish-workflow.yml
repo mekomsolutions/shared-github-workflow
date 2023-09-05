@@ -84,3 +84,4 @@ jobs:
           webhook_url: ${{ inputs.webhook-url }}
           webhook_auth: ${{ secrets.OCD3_USERNAME }}:${{ secrets.OCD3_PASSWORD }}
           repository: '{ "url": "${{github.server_url}}/${{github.repository}}" }'
+          verbose: true
