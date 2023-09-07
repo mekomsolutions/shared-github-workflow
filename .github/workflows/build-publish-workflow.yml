@@ -9,6 +9,9 @@ on:
       webhook-url:
         required: true
         type: string
+      ref:
+        required: false
+        type: string
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -83,4 +86,5 @@ jobs:
           webhook_type: 'json-extended'
           webhook_url: ${{ inputs.webhook-url }}
           webhook_auth: ${{ secrets.OCD3_USERNAME }}:${{ secrets.OCD3_PASSWORD }}
+          data: "{ \"ref\": \"${{ github.event_name == 'schedule' && github.default_branch || github.ref }}\" }"
           verbose: true
