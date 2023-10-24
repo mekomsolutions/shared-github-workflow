@@ -12,6 +12,9 @@ on:
       ref:
         required: false
         type: string
+      java-version:
+        required: true
+        type: string
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -29,11 +32,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '${{ inputs.java-version }}'
           cache: "maven"
       - name: Build
         run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
@@ -45,11 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK 8
+      - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '${{ inputs.java-version }}'
           cache: "maven"
 
       - name: Set settings.xml
