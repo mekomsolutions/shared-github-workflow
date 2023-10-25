@@ -4,7 +4,7 @@ GitHub workflow to build and publish Maven projects, then invoke a webhook.
 
 
 ### Workflow usage example:
-```
+```yml
 name: Validate and optionally publish (if pushed on main)
 
 on:
@@ -15,6 +15,7 @@ jobs:
     uses: mekomsolutions/mekom-github-workflow-maven/.github/workflows/build-publish-workflow.yml@main
     with:
       webhook-url: https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke
+      java-version: '8' # Optional, defaults to Java 8
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
@@ -34,6 +35,10 @@ List of inputs:
     webhook-url:
       required: true
       type: string
+    java-version:
+      required: false
+      type: string
+      default: '8'
     secrets:
       NEXUS_USERNAME:
         required: true
