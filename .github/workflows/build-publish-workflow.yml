@@ -13,8 +13,9 @@ on:
         required: false
         type: string
       java-version:
-        required: true
+        required: false
         type: string
+        default: '8'
     secrets:
       NEXUS_USERNAME:
         required: true
