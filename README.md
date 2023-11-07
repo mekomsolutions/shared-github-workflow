@@ -16,6 +16,7 @@ jobs:
     with:
       webhook-url: https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke
       java-version: '8' # Optional, defaults to Java 8
+      notify-ocd3: false # Optional, defaults to true
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
@@ -39,6 +40,10 @@ List of inputs:
       required: false
       type: string
       default: '8'
+    notify-ocd3:
+      required: false
+      type: boolean
+      default: true
     secrets:
       NEXUS_USERNAME:
         required: true

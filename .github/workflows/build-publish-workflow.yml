@@ -16,6 +16,10 @@ on:
         required: false
         type: string
         default: '8'
+      notify-ocd3:
+        required: false
+        type: boolean
+        default: true
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -85,6 +89,7 @@ jobs:
         run: "mvn --batch-mode clean deploy ${{ inputs.maven-args }}"
 
       - name: Notify OCD3
+        if: ${{ inputs.notify-ocd3 }}
         uses: distributhor/workflow-webhook@v3
         env:
           webhook_type: 'json-extended'
