@@ -59,4 +59,4 @@ jobs:
             }]
 
       - name: Validate
-        run: "mvn --batch-mode clean deploy ${{ inputs.maven-args }}"
+        run: "mvn --batch-mode --update-snapshots clean install ${{ inputs.maven-args }}"
