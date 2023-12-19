@@ -1,0 +1,62 @@
+name: Validate
+
+on:
+  workflow_call:
+    inputs:
+      maven-args:
+        required: false
+        type: string
+      java-version:
+        required: false
+        type: string
+        default: '8'
+    secrets:
+      NEXUS_USERNAME:
+        required: true
+      NEXUS_PASSWORD:
+        required: true
+      OCD3_USERNAME:
+        required: true
+      OCD3_PASSWORD:
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '${{ inputs.java-version }}'
+          cache: "maven"
+
+      - name: Set settings.xml
+        uses: s4u/maven-settings-action@v2.8.0
+        with:
+          servers: |
+            [{
+              "id": "mks-nexus-public-snapshots",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-public-releases",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-private-snapshots",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-private-releases",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            }]
+
+      - name: Validate
+        run: "mvn --batch-mode --update-snapshots clean install ${{ inputs.maven-args }}"
