@@ -88,7 +88,7 @@ jobs:
               "id": "mks-nexus-private-releases",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
-            },]
+            }]
 
       - name: Publish
         run: "mvn --batch-mode clean deploy ${{ inputs.maven-args }}"
