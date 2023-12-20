@@ -65,6 +65,11 @@ jobs:
         with:
           servers: |
             [{
+              "id": "mks-private-repo",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
               "id": "mks-nexus-public-snapshots",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
