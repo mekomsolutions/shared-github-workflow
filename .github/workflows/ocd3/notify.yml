@@ -1,0 +1,36 @@
+name: Notify OCD3
+
+on:
+  workflow_call:
+    inputs:
+      notify-ocd3:
+        description: 'Notify OCD3'
+        required: false
+        type: boolean
+        default: true
+      webhook-url:
+        description: 'Webhook URL'
+        required: false
+        type: string
+        default: 'https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke'
+    secrets:
+      OCD3_USERNAME:
+        required: true
+      OCD3_PASSWORD:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Notify OCD3
+        if: ${{ inputs.notify-ocd3 }}
+        uses: distributhor/workflow-webhook@v3
+        with:
+          webhook_type: 'json-extended'
+          webhook_url: ${{ inputs.webhook-url }}
+          webhook_auth: ${{ secrets.OCD3_USERNAME }}:${{ secrets.OCD3_PASSWORD }}
+          data: "{ \"ref\": \"${{ github.event_name == 'schedule' && github.event.repository.default_branch || github.ref }}\" }"
+          verbose: true
