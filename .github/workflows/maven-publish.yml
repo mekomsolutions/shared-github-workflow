@@ -31,11 +31,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up JDK {{ inputs.java-version }}
+      - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
         with:
-          java-version: '{{ inputs.java-version }}}'
-          distribution: '{{ inputs.java-distribution }}'
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.java-distribution }}
           cache: 'maven'
 
       - name: Set settings.xml
