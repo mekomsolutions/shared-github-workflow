@@ -1,0 +1,77 @@
+name: Check for dependency changes
+
+on:
+  workflow_call:
+    inputs:
+      maven-args:
+        default: '-DskipTests=true'
+        description: 'Additional arguments to pass to maven'
+        required: false
+        type: string
+      java-version:
+        default: '17'
+        description: 'Java version to use for building'
+        required: false
+        type: string
+      java-distribution:
+        default: 'temurin'
+        description: 'Java distribution to use for building'
+        required: false
+        type: string
+    secrets:
+      NEXUS_USERNAME:
+        required: true
+      NEXUS_PASSWORD:
+        required: true
+      OCD3_USERNAME:
+        required: true
+      OCD3_PASSWORD:
+        required: true
+
+
+jobs:
+  check-for-dependency-changes:
+    outputs:
+      hasChanged: ${{ steps.compareDependencyChanges.outputs.hasChanged }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.java-distribution }}
+          cache: 'maven'
+
+      - name: Check for dependency changes
+        id: compareDependencyChanges
+        run: bash mekomsolutions/shared-github-workflow/.github/scripts/compare-dependency-reports.sh
+
+  build:
+    needs: check-for-dependency-changes
+    if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ inputs.java-distribution }}
+          java-version: ${{ inputs.java-version }}
+          cache: "maven"
+      - name: Build
+        run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
+
+  publish:
+    needs: build
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
+    with:
+      java-version: ${{ inputs.java-version }}
+      java-distribution: ${{ inputs.java-distribution }}
+      maven-args: ${{ inputs.maven-args }}
+    secrets:
+      NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+      NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
