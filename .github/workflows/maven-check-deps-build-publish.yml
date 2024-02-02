@@ -23,10 +23,6 @@ on:
         required: true
       NEXUS_PASSWORD:
         required: true
-      OCD3_USERNAME:
-        required: true
-      OCD3_PASSWORD:
-        required: true
 
 
 jobs:
