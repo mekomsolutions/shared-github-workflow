@@ -49,3 +49,5 @@ jobs:
 ```
 
 Replace `my-image` with the name of the Docker image you want to build and publish. You also need to set the `DOCKER_HUB_USERNAME` and `DOCKER_HUB_PASSWORD` secrets in your repository settings.
+
+For more information about reusable workflows, see the official GitHub documentation: [https://docs.github.com/en/actions/using-workflows/reusing-workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).

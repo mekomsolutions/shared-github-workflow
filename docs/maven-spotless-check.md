@@ -30,3 +30,5 @@ jobs:
   spotless-check:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
 ```
+
+For more information about reusable workflows, see the official GitHub documentation: [https://docs.github.com/en/actions/using-workflows/reusing-workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).

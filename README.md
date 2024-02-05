@@ -4,7 +4,7 @@ This repository contains shared GitHub workflows that can be used in other repos
  
 ## Workflows
 
-The following workflows are available in this repository:
+The following reusable workflows are available in this repository:
 
 - [Docker Build and Publish](docs/docker-build-publish.md)
 - [Maven Build and Test](docs/maven-build-test.md)
@@ -15,6 +15,8 @@ The following workflows are available in this repository:
 ## Usage
 
 To use a workflow in your repository, create a new workflow file in the `.github/workflows` directory of your repository and use the `uses` keyword to include the workflow from this repository.
+
+For more information, see the [official GitHub documentation](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
 For example, to use the `Docker Build and Publish` workflow, create a new file `.github/workflows/docker-build-publish.yml` in your repository with the following content:
 

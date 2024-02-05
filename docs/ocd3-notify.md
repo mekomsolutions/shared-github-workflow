@@ -43,3 +43,5 @@ jobs:
 ```
 
 Replace `OCD3_USERNAME` and `OCD3_PASSWORD` with the credentials to access the OCD3 API. You also need to set the `OCD3_USERNAME` and `OCD3_PASSWORD` secrets in your repository settings.
+
+For more information about reusable workflows, see the official GitHub documentation: [https://docs.github.com/en/actions/using-workflows/reusing-workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
