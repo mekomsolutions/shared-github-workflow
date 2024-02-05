@@ -43,7 +43,10 @@ jobs:
 
       - name: Check for dependency changes
         id: compareDependencyChanges
-        run: bash ${GITHUB_WORKSPACE}/.github/scripts/compare-dependency-reports.sh
+        run: |
+          curl -O https://raw.githubusercontent.com/mekomsolutions/shared-github-workflow/main/.github/scripts/compare-dependency-reports.sh
+          chmod +x compare-dependency-reports.sh
+          ./compare-dependency-reports.sh
 
   build:
     needs: check-for-dependency-changes
