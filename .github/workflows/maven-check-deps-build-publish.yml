@@ -43,7 +43,7 @@ jobs:
 
       - name: Check for dependency changes
         id: compareDependencyChanges
-        run: bash mekomsolutions/shared-github-workflow/.github/scripts/compare-dependency-reports.sh
+        run: bash ./.github/scripts/compare-dependency-reports.sh
 
   build:
     needs: check-for-dependency-changes

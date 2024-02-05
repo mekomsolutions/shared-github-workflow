@@ -6,12 +6,12 @@ on:
       context:
         default: .
         description: 'Path to the build context'
-        required: true
+        required: false
         type: string
       dockerfile:
         default: Dockerfile
         description: 'Path to the Dockerfile to build'
-        required: true
+        required: false
         type: string
       image-name:
         description: 'Name of the image to build'
