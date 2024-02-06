@@ -75,6 +75,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Check for dependency changes
         id: compareDependencyChanges
         shell: bash
@@ -146,6 +148,8 @@ jobs:
     if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Build
         run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
 
