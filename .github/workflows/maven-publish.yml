@@ -31,13 +31,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set settings
-        uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-set-settings.yml@main
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ inputs.java-version }}
-          java-distribution: ${{ inputs.java-distribution }}
-          nexus-username: ${{ secrets.NEXUS_USERNAME }}
-          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+          distribution: ${{ inputs.java-distribution }}
+          cache: 'maven'
+
+      - name: Set settings.xml
+        uses: s4u/maven-settings-action@v3.0.0
+        with:
+          servers: |
+            [{
+              "id": "mks-private-repo",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-public-snapshots",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-public-releases",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-private-snapshots",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-private-releases",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            }]
 
       - name: Publish maven artifacts
         run: 'mvn --batch-mode clean deploy ${{ inputs.maven-args }}'
