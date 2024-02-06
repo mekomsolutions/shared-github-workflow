@@ -34,12 +34,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ inputs.java-version }}
-        uses: actions/setup-java@v4
+      - name: Set settings.xml
+        uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-set-settings.yml@main
         with:
           java-version: ${{ inputs.java-version }}
-          distribution: ${{ inputs.java-distribution }}
-          cache: 'maven'
+          java-distribution: ${{ inputs.java-distribution }}
+          nexus-username: ${{ secrets.NEXUS_USERNAME }}
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
 
       - name: Check for dependency changes
         id: compareDependencyChanges
@@ -114,12 +115,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ inputs.java-version }}
-        uses: actions/setup-java@v4
+      - name: Set settings.xml
+        uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-set-settings.yml@main
         with:
-          distribution: ${{ inputs.java-distribution }}
           java-version: ${{ inputs.java-version }}
-          cache: "maven"
+          java-distribution: ${{ inputs.java-distribution }}
+          nexus-username: ${{ secrets.NEXUS_USERNAME }}
+          nexus-password: ${{ secrets.NEXUS_PASSWORD }}
+
       - name: Build
         run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
 
