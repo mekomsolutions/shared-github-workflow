@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: ''
+      maven-phase:
+        description: 'The Maven phase to execute'
+        required: false
+        type: string
+        default: 'verify'
       use-secrets:
         description: 'Whether to use secrets or not'
         required: false
@@ -75,4 +80,4 @@ jobs:
             }]
       
       - name: Build with Maven
-        run: 'mvn --batch-mode --update-snapshots clean verify ${{ inputs.maven-args }}'
+        run: 'mvn --batch-mode --update-snapshots clean ${{ inputs.maven-phase }} ${{ inputs.maven-args }}'
