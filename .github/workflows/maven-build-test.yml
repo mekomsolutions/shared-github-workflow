@@ -18,6 +18,12 @@ on:
         required: false
         type: string
         default: ''
+      use-secrets:
+        description: 'Whether to use secrets or not'
+        required: false
+        type: boolean
+        default: false
+
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -38,6 +44,7 @@ jobs:
           cache: 'maven'
 
       - name: Set settings.xml
+        if: ${{ inputs.use-secrets }}
         uses: s4u/maven-settings-action@v3.0.0
         with:
           servers: |
@@ -57,7 +64,12 @@ jobs:
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             },
             {
-              "id": "mks-nexus-public-releases",
+              "id": "mks-nexus-private-snapshots",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "mks-nexus-private-releases",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             }]
