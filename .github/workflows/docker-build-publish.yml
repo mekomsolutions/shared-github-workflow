@@ -17,6 +17,21 @@ on:
         description: 'Name of the image to build'
         required: true
         type: string
+      download-artifacts:
+        description: 'Whether to download artifacts or not'
+        required: false
+        type: boolean
+        default: false
+      artifact-name:
+        default: artifact
+        description: 'Name of the artifact to download'
+        required: false
+        type: string
+      artifact-path:
+        default: .
+        description: 'Path to download the artifact to'
+        required: false
+        type: string
 
     secrets:
         DOCKER_HUB_USERNAME:
@@ -31,6 +46,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download artifacts
+        if: ${{ inputs.download-artifacts }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
 
       - name: Get version
         id: get_version
