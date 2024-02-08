@@ -23,6 +23,11 @@ on:
         required: false
         type: boolean
         default: false
+      maven-phase:
+        description: 'Maven phase to run'
+        required: false
+        type: string
+        default: 'verify'
 
     secrets:
       NEXUS_USERNAME:
@@ -75,4 +80,4 @@ jobs:
             }]
       
       - name: Build with Maven
-        run: 'mvn --batch-mode --update-snapshots clean verify ${{ inputs.maven-args }}'
+        run: 'mvn --batch-mode --update-snapshots clean ${{ inputs.maven-phase }} ${{ inputs.maven-args }}'
