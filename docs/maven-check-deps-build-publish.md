@@ -1,6 +1,6 @@
 # Check for Dependency Changes Workflow
 
-This workflow is named `Check for dependency changes`. It is designed to check for changes in the dependencies of a Maven project and build the project if changes are detected. It also publishes the build using a shared GitHub workflow.
+This workflow is named `Check for dependency changes`. It is designed to check for changes in the dependencies of a Maven project and build the project if changes are detected. It also publishes the build to Nexus using a shared GitHub workflow. Optionally, it can upload the artifacts to GitHub using the `upload-artifacts` action.
 
 ## Workflow Triggers
 
@@ -11,6 +11,9 @@ This workflow is triggered when it is called from another workflow.
 - `maven-args`: Additional arguments to pass to Maven. Default is `-DskipTests=true`.
 - `java-version`: Java version to use for building. Default is `17`.
 - `java-distribution`: Java distribution to use for building. Default is `temurin`.
+- `upload-artifacts`: Whether to upload the artifacts to GitHub using upload-artifacts action. Default is `false`.
+- `upload-artifacts-path`: The path to the artifacts to upload. Default is empty.
+- `upload-artifacts-name`: The name of the artifacts to upload. Default is `artifact`.
 
 ## Secrets
 

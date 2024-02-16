@@ -86,7 +86,7 @@ jobs:
       - name: Publish maven artifacts
         run: 'mvn --batch-mode clean deploy ${{ inputs.maven-args }}'
 
-      - name: Upload artifacts
+      - name: Upload artifacts to GitHub
         if: ${{ inputs.upload-artifacts }}
         uses: actions/upload-artifact@v4
         with:

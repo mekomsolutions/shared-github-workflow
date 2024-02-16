@@ -18,6 +18,21 @@ on:
         description: 'Java distribution to use for building'
         required: false
         type: string
+      upload-artifacts:
+        description: 'Whether to upload build artifacts or not'
+        required: false
+        type: boolean
+        default: false
+      artifact-path:
+        description: 'Path to the artifact(s) to upload'
+        required: false
+        type: string
+        default: ''
+      artifact-name:
+        description: 'Name of the artifact(s) to upload'
+        required: false
+        type: string
+        default: 'artifact'
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -191,6 +206,9 @@ jobs:
       java-version: ${{ inputs.java-version }}
       java-distribution: ${{ inputs.java-distribution }}
       maven-args: ${{ inputs.maven-args }}
+      upload-artifacts: ${{ inputs.upload-artifacts }}
+      artifact-path: ${{ inputs.artifact-path }}
+      artifact-name: ${{ inputs.artifact-name }}
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
