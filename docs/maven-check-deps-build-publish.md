@@ -14,6 +14,10 @@ This workflow is triggered when it is called from another workflow.
 - `upload-artifacts`: Whether to upload the artifacts to GitHub using upload-artifacts action. Default is `false`.
 - `upload-artifacts-path`: The path to the artifacts to upload. Default is empty.
 - `upload-artifacts-name`: The name of the artifacts to upload. Default is `artifact`.
+- `notify-ocd3`: Whether to notify the OCD3 about the new published artifacts. Default is `false`.
+- `ocd3-webhook-url`: The Webhook URL of the OCD3 to notify. Default is `https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke`.
+- `ocd3-username`: The username to authenticate with OCD3 . Default is empty.
+- `ocd3-password`: The password to authenticate with OCD3. Default is empty.
 
 ## Secrets
 
@@ -41,6 +45,17 @@ on:
 jobs:
   check-deps:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-check-deps-build-publish.yml@main
+    with:
+      maven-args: -DskipTests=true # Optional, default is -DskipTests=true
+      java-version: 17 # Optional, default is 17
+      java-distribution: temurin # Optional, default is temurin
+      upload-artifacts: false # Optional, default is false
+      upload-artifacts-path: '' # Optional, default is empty
+      upload-artifacts-name: artifact # Optional, default is artifact
+      notify-ocd3: false # Optional, default is false
+      ocd3-webhook-url: https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke # Optional
+      ocd3-username: '' # Optional, default is empty
+      ocd3-password: '' # Optional, default is empty
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
