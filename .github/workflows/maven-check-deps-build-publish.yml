@@ -37,7 +37,7 @@ on:
         description: 'Notify OCD3'
         required: false
         type: boolean
-        default: true
+        default: false
       ocd3-webhook-url:
         description: 'Webhook URL'
         required: false
