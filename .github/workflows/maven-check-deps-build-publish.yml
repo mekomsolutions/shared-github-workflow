@@ -33,6 +33,24 @@ on:
         required: false
         type: string
         default: 'artifact'
+      notify-ocd3:
+        description: 'Notify OCD3'
+        required: false
+        type: boolean
+        default: true
+      ocd3-webhook-url:
+        description: 'Webhook URL'
+        required: false
+        type: string
+        default: 'https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke'
+      ocd3-username:
+        description: 'OCD3 username'
+        required: false
+        type: string
+      ocd3-password:
+        description: 'OCD3 password'
+        required: false
+        type: string
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -152,6 +170,7 @@ jobs:
           
           exit 0
 
+
   build:
     needs: check-for-dependency-changes
     if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
@@ -212,3 +231,13 @@ jobs:
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
+  notify-ocd3:
+    needs: publish
+    if: ${{ inputs.notify-ocd3 }}
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/ocd3-notify.yml@main
+    with:
+      webhook-url: ${{ inputs.ocd3-webhook-url }}
+    secrets:
+      OCD3_USERNAME: ${{ inputs.ocd3-username }}
+      OCD3_PASSWORD: ${{ inputs.ocd3-password }}
