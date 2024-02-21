@@ -16,13 +16,13 @@ This workflow is triggered when it is called from another workflow.
 - `upload-artifacts-name`: The name of the artifacts to upload. Default is `artifact`.
 - `notify-ocd3`: Whether to notify the OCD3 about the new published artifacts. Default is `false`.
 - `ocd3-webhook-url`: The Webhook URL of the OCD3 to notify. Default is `https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke`.
-- `ocd3-username`: The username to authenticate with OCD3 . Default is empty.
-- `ocd3-password`: The password to authenticate with OCD3. Default is empty.
 
 ## Secrets
 
 - `NEXUS_USERNAME`: Required for the workflow.
 - `NEXUS_PASSWORD`: Required for the workflow.
+- `OCD3_USERNAME`: Optional.
+- `OCD3_PASSWORD`: Optional.
 
 ## Jobs
 
@@ -54,11 +54,11 @@ jobs:
       upload-artifacts-name: artifact # Optional, default is artifact
       notify-ocd3: false # Optional, default is false
       ocd3-webhook-url: https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke # Optional
-      ocd3-username: '' # Optional, default is empty
-      ocd3-password: '' # Optional, default is empty
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+      OCD3_USERNAME: ${{ secrets.OCD3_USERNAME }} # Optional
+      OCD3_PASSWORD: ${{ secrets.OCD3_PASSWORD }} # Optional
 ```
 
 Replace `NEXUS_USERNAME` and `NEXUS_PASSWORD` with the credentials to access the Maven repository. You also need to set the `NEXUS_USERNAME` and `NEXUS_PASSWORD` secrets in your repository settings.

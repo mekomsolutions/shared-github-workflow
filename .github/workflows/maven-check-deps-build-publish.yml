@@ -43,19 +43,15 @@ on:
         required: false
         type: string
         default: 'https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke'
-      ocd3-username:
-        description: 'OCD3 username'
-        required: false
-        type: string
-      ocd3-password:
-        description: 'OCD3 password'
-        required: false
-        type: string
     secrets:
       NEXUS_USERNAME:
         required: true
       NEXUS_PASSWORD:
         required: true
+      OCD3_USERNAME:
+        required: false
+      OCD3_PASSWORD:
+        required: false
 
 
 jobs:
@@ -239,5 +235,5 @@ jobs:
     with:
       webhook-url: ${{ inputs.ocd3-webhook-url }}
     secrets:
-      OCD3_USERNAME: ${{ inputs.ocd3-username }}
-      OCD3_PASSWORD: ${{ inputs.ocd3-password }}
+      OCD3_USERNAME: ${{ secrets.OCD3_USERNAME }}
+      OCD3_PASSWORD: ${{ secrets.OCD3_PASSWORD }}
