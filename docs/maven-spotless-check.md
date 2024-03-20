@@ -10,6 +10,7 @@ This workflow is triggered when it is called from another workflow.
 
 - `java-version`: Java version to use for building. Default is `17`.
 - `java-distribution`: Java distribution to use for building. Default is `temurin`.
+- `maven-args`: Additional arguments to pass to the Maven command. Default to empty.
 
 ## Jobs
 
