@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: 'temurin'
+      maven-args:
+        description: 'Maven arguments'
+        required: false
+        type: string
+        default: ''
 
 
 concurrency:
@@ -36,4 +41,4 @@ jobs:
           cache: 'maven'
       
       - name: Run Spotless Check
-        run:  mvn spotless:check
+        run:  mvn spotless:check ${{ inputs.maven-args }}
