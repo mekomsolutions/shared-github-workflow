@@ -43,6 +43,11 @@ on:
         required: false
         type: string
         default: 'https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke'
+      check-deps-timeout-minutes:
+        description: 'Timeout for checking dependencies in minutes. Default is 10 minutes.'
+        required: false
+        type: number
+        default: 10
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -56,6 +61,7 @@ on:
 
 jobs:
   check-for-dependency-changes:
+    timeout-minutes: ${{ inputs.check-deps-timeout-minutes }}
     outputs:
       hasChanged: ${{ steps.compareDependencyChanges.outputs.hasChanged }}
     runs-on: ubuntu-latest

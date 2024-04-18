@@ -16,6 +16,7 @@ This workflow is triggered when it is called from another workflow.
 - `upload-artifacts-name`: The name of the artifacts to upload. Default is `artifact`.
 - `notify-ocd3`: Whether to notify the OCD3 about the new published artifacts. Default is `false`.
 - `ocd3-webhook-url`: The Webhook URL of the OCD3 to notify. Default is `https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke`.
+- `check-deps-timeout-minutes`: The timeout in minutes for the check-for-dependency-changes job. Default is `10`.
 
 ## Secrets
 
