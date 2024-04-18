@@ -11,6 +11,7 @@ The following reusable workflows are available in this repository:
 - [Maven Spotless Check](docs/maven-spotless-check.md)
 - [Notify OCD3](docs/ocd3-notify.md)
 - [Maven Check Dependency Changes ](docs/maven-check-deps-build-publish.md)
+- [Maven License Check](docs/maven-license-check.md)
 
 ## Usage
 

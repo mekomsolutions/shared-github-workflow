@@ -1,0 +1,44 @@
+name: Run License Check
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: 'Java version to use for building'
+        required: false
+        type: string
+        default: '17'
+      java-distribution:
+        description: 'Java distribution to use for building'
+        required: false
+        type: string
+        default: 'temurin'
+      maven-args:
+        description: 'Maven arguments'
+        required: false
+        type: string
+        default: ''
+
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.number || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.java-distribution }}
+          cache: 'maven'
+
+      - name: Run License Check
+        run:  mvn license:check ${{ inputs.maven-args }}
