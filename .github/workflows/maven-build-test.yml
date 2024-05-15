@@ -59,6 +59,11 @@ jobs:
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             },
             {
+              "id": "mks-nexus-private",
+              "username": "${{ secrets.NEXUS_USERNAME }}",
+              "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
               "id": "mks-nexus-public-snapshots",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
