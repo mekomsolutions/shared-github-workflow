@@ -17,6 +17,7 @@ This workflow is triggered when it is called from another workflow.
 - `notify-ocd3`: Whether to notify the OCD3 about the new published artifacts. Default is `false`.
 - `ocd3-webhook-url`: The Webhook URL of the OCD3 to notify. Default is `https://openmrs-cd.mekomsolutions.net/generic-webhook-trigger/invoke`.
 - `check-deps-timeout-minutes`: The timeout in minutes for the check-for-dependency-changes job. Default is `10`.
+- `check-deps-maven-args`: Additional arguments to pass to the Maven command in the check-for-dependency-changes job. Default is empty.
 
 ## Secrets
 
