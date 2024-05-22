@@ -59,7 +59,7 @@ jobs:
           path: ${{ inputs.artifact-path }}
       
       - name: Get version
-        if: github.event.inputs.image-version == ''
+        if: github.event.inputs.image-version != ''
         id: get_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
