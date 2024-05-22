@@ -59,7 +59,7 @@ jobs:
           path: ${{ inputs.artifact-path }}
       
       - name: Get version
-        if: github.event.inputs.image-version != ''
+        if: github.event.inputs.image-version == ''
         id: get_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -68,14 +68,13 @@ jobs:
 
       - name: Prepare
         id: prep
-        if: github.event.inputs.image-version == ''
         run: |
           DOCKER_IMAGE=${{ secrets.DOCKER_HUB_USERNAME }}/${{ inputs.image-name }}
           VERSION=latest
           # Tag the image with latest.
           TAGS="${DOCKER_IMAGE}:${VERSION}"
 
-          # Tag the image with version from pom file.
+          # Tag the image with version.
           TAGS="${TAGS},${DOCKER_IMAGE}:${{ github.event.inputs.image-version == '' && steps.get_version.outputs.version || github.event.inputs.image-version }}"
 
           # Set output parameters.
