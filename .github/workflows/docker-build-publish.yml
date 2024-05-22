@@ -32,6 +32,10 @@ on:
         description: 'Path to download the artifact to'
         required: false
         type: string
+      image-version:
+        description: "Version to tag the image with. Default is 'latest'"
+        required: false
+        type: string
 
     secrets:
         DOCKER_HUB_USERNAME:
@@ -53,8 +57,9 @@ jobs:
         with:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.artifact-path }}
-
+      
       - name: Get version
+        if: github.event.inputs.image-version == ''
         id: get_version
         run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
@@ -63,6 +68,7 @@ jobs:
 
       - name: Prepare
         id: prep
+        if: github.event.inputs.image-version == ''
         run: |
           DOCKER_IMAGE=${{ secrets.DOCKER_HUB_USERNAME }}/${{ inputs.image-name }}
           VERSION=latest
@@ -70,7 +76,7 @@ jobs:
           TAGS="${DOCKER_IMAGE}:${VERSION}"
 
           # Tag the image with version from pom file.
-          TAGS="${TAGS},${DOCKER_IMAGE}:${{ steps.get_version.outputs.version }}"
+          TAGS="${TAGS},${DOCKER_IMAGE}:${{ github.event.inputs.image-version == '' && steps.get_version.outputs.version || github.event.inputs.image-version }}"
 
           # Set output parameters.
           echo ::set-output name=tags::${TAGS}
