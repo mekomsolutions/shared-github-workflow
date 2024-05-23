@@ -59,15 +59,18 @@ jobs:
           path: ${{ inputs.artifact-path }}
       
       - name: Get version
-        if: github.event.inputs.image-version == ''
+        if: inputs.image-version == ''
         id: get_version
         run: |
+          # Workaround to fail if pom.xml does not exist.
+          mvn install -DskipTests
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo $VERSION
           echo ::set-output name=version::$VERSION
 
       - name: Prepare
         id: prep
+        shell: bash
         run: |
           DOCKER_IMAGE=${{ secrets.DOCKER_HUB_USERNAME }}/${{ inputs.image-name }}
           VERSION=latest
@@ -75,7 +78,7 @@ jobs:
           TAGS="${DOCKER_IMAGE}:${VERSION}"
 
           # Tag the image with version.
-          TAGS="${TAGS},${DOCKER_IMAGE}:${{ github.event.inputs.image-version == '' && steps.get_version.outputs.version || github.event.inputs.image-version }}"
+          TAGS="${TAGS},${DOCKER_IMAGE}:${{ !inputs.image-version && steps.get_version.outputs.version || inputs.image-version}}"
 
           # Set output parameters.
           echo ::set-output name=tags::${TAGS}
