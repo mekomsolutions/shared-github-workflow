@@ -85,4 +85,4 @@ jobs:
             }]
       
       - name: Build with Maven
-        run: 'mvn --batch-mode --update-snapshots clean ${{ inputs.maven-phase }} ${{ inputs.maven-args }}'
+        run: 'mvn --batch-mode --no-transfer-progress --update-snapshots clean ${{ inputs.maven-phase }} ${{ inputs.maven-args }}'

@@ -139,8 +139,8 @@ jobs:
           # Fetch the remote dependency report
           echo "Fetch remote dependency report..."
           set +e
-          mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
-          mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
+          mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
+          mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
           set -e
           
           # If no dependency report was fetched, create an empty one.
@@ -153,7 +153,7 @@ jobs:
           
           # Build the local dependency report
           echo "Compile a local dependency report..."
-          mvn clean compile
+          mvn --batch-mode --no-transfer-progress clean compile
           
           # Compare the 2 files. Will exit with 0 if no change, 1 if changes
           echo "Compare both dependency reports..."
@@ -223,7 +223,7 @@ jobs:
             }]
 
       - name: Build
-        run: "mvn --batch-mode clean package ${{ inputs.maven-args }}"
+        run: "mvn --batch-mode --no-transfer-progress clean package ${{ inputs.maven-args }}"
 
   publish:
     needs: build
