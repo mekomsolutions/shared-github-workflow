@@ -62,11 +62,14 @@ jobs:
         if: inputs.image-version == ''
         id: get_version
         run: |
-          # Workaround to fail if pom.xml does not exist.
-          mvn install -DskipTests
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo $VERSION
-          echo ::set-output name=version::$VERSION
+          if [ -f pom.xml ]; then
+            VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            echo $VERSION
+            echo ::set-output name=version::$VERSION
+          else
+            echo "pom.xml does not exist."
+            exit 1
+          fi
 
       - name: Prepare
         id: prep
