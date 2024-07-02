@@ -48,6 +48,16 @@ on:
         required: false
         type: number
         default: 10
+      check-deps-maven-args:
+        description: 'Maven arguments to use for checking dependencies'
+        required: false
+        type: string
+        default: '-DskipTests'
+      check-deps-maven-phase:
+        description: 'Maven phase to use for checking dependencies'
+        required: false
+        type: string
+        default: 'compile'
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -113,70 +123,94 @@ jobs:
 
       - name: Check for dependency changes
         id: compareDependencyChanges
+        env:
+          MAVEN_ARGS: ${{ inputs.check-deps-maven-args }}
+          MAVEN_PHASE: ${{ inputs.check-deps-maven-phase }}
         shell: bash
         run: |
           #!/usr/bin/env bash
           set -e
           
+          # Initialize hasChanged to 0
+          hasChanged=0
+          
           # Download the remote dependency report
           remoteRepoUrl=https://nexus.mekomsolutions.net/repository/maven-public
           
-          # Parse artifact details from project pom.xml
-          echo "Parsing details from project pom.xml..."
-          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
-          groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
-          classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
-          artifact=${groupId}:${artifactId}:${version}:txt:${classifier}
+          # Get the list of sub-modules
+          modules=$(mvn -q $MAVEN_ARGS --also-make exec:exec -Dexec.executable="echo" -Dexec.args='${project.build.directory}')
           
-          # Set the dependency report file name
-          filename=${artifactId}-${version}-${classifier}.txt
-          absolutePath=/tmp/$filename
-          
-          # Remove previous file if any
-          rm -f ${absolutePath}
-          
-          # Fetch the remote dependency report
-          echo "Fetch remote dependency report..."
-          set +e
-          mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
-          mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
-          set -e
-          
-          # If no dependency report was fetched, create an empty one.
-          if [ ! -f "$absolutePath" ]; then
-          echo "Remote dependency file is not found at '${absolutePath}'. Creating an empty one and continue."
-          touch ${absolutePath}
-          else
-          echo "Remote dependency file saved at '${absolutePath}'."
-          fi
+          echo "List of modules to check for dependency changes:"
+          echo "$modules"
           
           # Build the local dependency report
           echo "Compile a local dependency report..."
-          mvn --batch-mode --no-transfer-progress clean compile
+          mvn --batch-mode --no-transfer-progress clean $MAVEN_PHASE $MAVEN_ARGS
           
-          # Compare the 2 files. Will exit with 0 if no change, 1 if changes
-          echo "Compare both dependency reports..."
-          set +e
-          diff ${absolutePath} ./target/${filename}
-          diff_rc=$?
-          set -e
+          # Iterate over each module
+          for module in $modules; do
+            modulePath=$(echo $module | sed 's/\\/\//g')
           
-          if [ $diff_rc -eq 0 ]; then
-          echo "No dependency change. Exit (0)"
-          elif [ $diff_rc -eq 1 ]; then
-          echo "One or more dependency has changed. Exit (1)"
-          else
-          echo "Unknown error occured."
-          fi
+            # Navigate to the module directory
+            cd $(dirname $modulePath)
           
-          set +e
-          # Export result code to be used in later steps of the GitHub worklow.
-          echo hasChanged=$diff_rc >> "$GITHUB_OUTPUT"
-          set -e
+            # Get the groupId, artifactId, and version
+            groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+            artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+            version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
+            artifact="${groupId}":"${artifactId}":"${version}":txt:"${classifier}"
           
+            filename=${artifactId}-${version}-${classifier}.txt
+            absolutePath=/tmp/$filename
+          
+            # Remove previous file if any
+            rm -f "${absolutePath}"
+          
+            # Fetch the remote dependency report
+            echo "Fetch remote dependency report ${artifact}..."
+            set +e
+            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
+            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
+            set -e
+          
+            # If no dependency report was fetched, create an empty one.
+            if [ ! -f "$absolutePath" ]; then
+              echo "Remote dependency file is not found at '${absolutePath}'. Creating an empty one and continue."
+              touch "${absolutePath}"
+            else
+              echo "Remote dependency file saved at '${absolutePath}'."
+            fi
+          
+            # Compare the 2 files. Will exit with 0 if no change, 1 if changes
+            echo "Compare both dependency reports..."
+            set +e
+            if [ -f ./target/"${filename}" ]; then
+              diff "${absolutePath}" ./target/"${filename}"
+              diff_rc=$?
+            
+            if [ $diff_rc -eq 0 ]; then
+              echo "No dependency change. Exit (0)"
+            elif [ $diff_rc -eq 1 ]; then
+              echo "One or more dependency has changed. Exit (1)"
+               # Set hasChanged to 1 (true) if a difference is found
+              hasChanged=1
+            else
+              echo "Unknown error occurred."
+            fi
+            else
+              echo "Local dependency report is not found at './target/${filename}'."
+              echo "Dependency changes not tracked. Exit (0)"
+            fi
+            set -e
+          
+            # Navigate back to the parent directory
+            cd -
+          done
+          
+          # Export hasChanged to be used in later steps of the GitHub workflow
+          echo hasChanged=$hasChanged >> "$GITHUB_OUTPUT"
           exit 0
-
 
   build:
     needs: check-for-dependency-changes
