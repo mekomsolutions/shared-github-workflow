@@ -52,7 +52,12 @@ on:
         description: 'Maven arguments to use for checking dependencies'
         required: false
         type: string
-        default: ''
+        default: '-DskipTests'
+      check-deps-maven-goal:
+        description: 'Maven goal to use for checking dependencies'
+        required: false
+        type: string
+        default: 'compile'
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -120,6 +125,7 @@ jobs:
         id: compareDependencyChanges
         env:
           MAVEN_ARGS: ${{ inputs.check-deps-maven-args }}
+          MAVEN_GOAL: ${{ inputs.check-deps-maven-goal }}
         shell: bash
         run: |
           #!/usr/bin/env bash
@@ -136,7 +142,7 @@ jobs:
           
           # Build the local dependency report
           echo "Compile a local dependency report..."
-          mvn --batch-mode --no-transfer-progress clean compile $MAVEN_ARGS
+          mvn --batch-mode --no-transfer-progress clean $MAVEN_GOAL $MAVEN_ARGS
           
           # Iterate over each module
           for module in $modules; do
