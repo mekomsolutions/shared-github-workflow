@@ -34,6 +34,10 @@ on:
         required: true
       NEXUS_PASSWORD:
         required: true
+      DOCKER_HUB_USERNAME:
+        required: false
+      DOCKER_HUB_PASSWORD:
+        required: false
 
 jobs:
   build:
