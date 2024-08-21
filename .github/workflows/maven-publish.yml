@@ -38,6 +38,11 @@ on:
         required: true
       NEXUS_PASSWORD:
         required: true
+      DOCKER_HUB_USERNAME:
+        required: false
+      DOCKER_HUB_PASSWORD:
+        required: false
+
 
 
 jobs:
@@ -86,6 +91,11 @@ jobs:
               "id": "mks-nexus-private-releases",
               "username": "${{ secrets.NEXUS_USERNAME }}",
               "password": "${{ secrets.NEXUS_PASSWORD }}"
+            },
+            {
+              "id": "docker.io",
+              "username": "${{ secrets.DOCKER_HUB_USERNAME || 'user'}}",
+              "password": "${{ secrets.DOCKER_HUB_PASSWORD || 'password'}}"
             }]
 
       - name: Publish maven artifacts
