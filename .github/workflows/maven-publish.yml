@@ -94,8 +94,8 @@ jobs:
             },
             {
               "id": "docker.io",
-              "username": "${{ secrets.DOCKER_HUB_USERNAME || 'user'}}",
-              "password": "${{ secrets.DOCKER_HUB_PASSWORD || 'password'}}"
+              "username": "${{ secrets.DOCKER_HUB_USERNAME || ''}}",
+              "password": "${{ secrets.DOCKER_HUB_PASSWORD || ''}}"
             }]
 
       - name: Publish maven artifacts
