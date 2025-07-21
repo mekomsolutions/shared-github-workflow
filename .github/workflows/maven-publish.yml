@@ -33,6 +33,11 @@ on:
         required: false
         type: string
         default: 'artifact'
+      free-disk-space:
+        description: 'Whether to free disk space before running the build'
+        required: false
+        type: boolean
+        default: false
     secrets:
       NEXUS_USERNAME:
         required: true
@@ -50,6 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
+        if: ${{ inputs.free-disk-space }}
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false

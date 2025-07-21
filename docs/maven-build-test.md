@@ -11,6 +11,7 @@ The workflow is triggered when it is called from another workflow.
 - `maven-args`: Additional arguments to pass to Maven. Default is `-DskipTests=false`.
 - `java-version`: Java version to use for building. Default is `17`.
 - `java-distribution`: Java distribution to use for building. Default is `temurin`.
+- `free-disk-space`: If set to `true`, it will check for free disk space before running the build. Default is `false`.
 
 ## Jobs
 
@@ -34,6 +35,7 @@ jobs:
       maven-args: -DskipTests=false # Optional default value: -DskipTests=false
       java-version: 17 # Optional default value: 17
       java-distribution: temurin # Optional default value: temurin
+      free-disk-space: false # Optional default value: false
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
