@@ -131,48 +131,55 @@ jobs:
           #!/usr/bin/env bash
           set -e
 
-          # Initialize hasChanged to 0
-          hasChanged=0
+          # Initialize toPublish to 0
+          toPublish=0
 
           # Run the build (comparison will be done during build)
           mvn --batch-mode --no-transfer-progress clean compile
 
-          groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
-          artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
-          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          # find -comparison.txt files
+          while IFS= read -r comparisonFilePath; do
+              # Read and test the content
+              echo "Found dependency report: $comparisonFilePath"
+              
+              comparisonResult=$(cat $comparisonFilePath)
+              
+              case "$comparisonResult" in
+              -1)
+                  # No remote dependency report found
+                  message="No remote dependency report found (comparison report = '-1')."
+                  echo $message
+                  toPublish=$(echo $toPublish + 1 | bc)
+                  ;;
+              0)
+                  # No dependency change
+                  message="No dependency change (comparison report = '0')."
+                  echo $message
+                  toPublish=$(echo $toPublish + 0 | bc)
+                  ;;
+              1)
+                  # Found dependency changes
+                  message="One or more dependency changes detected (comparison report = '1')."
+                  echo $message
+                  toPublish=$(echo $toPublish + 1 | bc)
+                  ;;
+              *)
+                  # Invalid output in comparison result file
+                  echo "Invalid value. Comparison report value is neither -1, 0 or 1."
+                  exit 1
+                  ;;
+              esac
 
-          comparisonFileName=${artifactId}-${version}-comparison.txt
-          comparisonFilePath=./target/${comparisonFileName}
+          done < <(find . -type f -name '*-comparison.txt' -print) 
 
-          comparisonResult=$(cat $comparisonFilePath)
+          if [ $toPublish -eq 1 ]; then
+              echo "Will publish..."
+          else
+              echo "Will not publish..."
+          fi
 
-          case "$comparisonResult" in
-            -1)
-              # No remote dependency report found
-              echo "No remote dependency report found (comparison report contains '-1')."
-              echo "Will publish the project."
-              hasChanged=1
-              ;;
-            0)
-              # No dependency change
-              echo "No dependency change (comparison report contains '0')."
-              echo "Will not publish the project."
-              hasChanged=0
-              ;;
-            1)
-              # Found dependency changes
-              echo "One or more dependency changes detected (comparison report contains '1')."
-              echo "Will publish the project."
-              hasChanged=1
-              ;;
-            *)
-              # Invalid output in comparison result file
-              echo "Invalid value. Comparison report value is neither -1, 0 or 1."
-              exit 1
-              ;;
-          esac
+          echo toPublish=$toPublish >> "$GITHUB_OUTPUT"
 
-          echo hasChanged=$hasChanged >> "$GITHUB_OUTPUT"
           exit 0
 
 
