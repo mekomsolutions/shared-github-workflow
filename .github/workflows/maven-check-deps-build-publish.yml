@@ -73,7 +73,7 @@ jobs:
   check-for-dependency-changes:
     timeout-minutes: ${{ inputs.check-deps-timeout-minutes }}
     outputs:
-      hasChanged: ${{ steps.compareDependencyReports.outputs.hasChanged }}
+      toPublish: ${{ steps.compareDependencyReports.outputs.toPublish }}
     runs-on: ubuntu-latest
 
     steps:
@@ -172,7 +172,7 @@ jobs:
 
           done < <(find . -type f -name '*-comparison.txt' -print) 
 
-          if [ $toPublish -eq 1 ]; then
+          if [ $toPublish -ge 1 ]; then
               echo "Will publish..."
           else
               echo "Will not publish..."
@@ -185,7 +185,7 @@ jobs:
 
   build:
     needs: check-for-dependency-changes
-    if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
+    if: ${{ needs.check-for-dependency-changes.outputs.toPublish >= '1' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
