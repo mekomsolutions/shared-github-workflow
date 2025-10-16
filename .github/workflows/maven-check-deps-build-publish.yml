@@ -73,7 +73,7 @@ jobs:
   check-for-dependency-changes:
     timeout-minutes: ${{ inputs.check-deps-timeout-minutes }}
     outputs:
-      toPublish: ${{ steps.compareDependencyReports.outputs.toPublish }}
+      hasChanged: ${{ steps.compareDependencyChanges.outputs.hasChanged }}
     runs-on: ubuntu-latest
 
     steps:
@@ -122,7 +122,7 @@ jobs:
             }]
 
       - name: Check for dependency changes
-        id: compareDependencyReports
+        id: compareDependencyChanges
         env:
           MAVEN_ARGS: ${{ inputs.check-deps-maven-args }}
           MAVEN_PHASE: ${{ inputs.check-deps-maven-phase }}
@@ -130,62 +130,91 @@ jobs:
         run: |
           #!/usr/bin/env bash
           set -e
-
-          # Initialize toPublish to 0
-          toPublish=0
-
-          # Run the build (comparison will be done during build)
-          mvn --batch-mode --no-transfer-progress clean compile
-
-          # find -comparison.txt files
-          while IFS= read -r comparisonFilePath; do
-              # Read and test the content
-              echo "Found dependency report: $comparisonFilePath"
-              
-              comparisonResult=$(cat $comparisonFilePath)
-              
-              case "$comparisonResult" in
-              -1)
-                  # No remote dependency report found
-                  message="No remote dependency report found (comparison report = '-1')."
-                  echo $message
-                  toPublish=$(echo $toPublish + 1 | bc)
-                  ;;
-              0)
-                  # No dependency change
-                  message="No dependency change (comparison report = '0')."
-                  echo $message
-                  toPublish=$(echo $toPublish + 0 | bc)
-                  ;;
-              1)
-                  # Found dependency changes
-                  message="One or more dependency changes detected (comparison report = '1')."
-                  echo $message
-                  toPublish=$(echo $toPublish + 1 | bc)
-                  ;;
-              *)
-                  # Invalid output in comparison result file
-                  echo "Invalid value. Comparison report value is neither -1, 0 or 1."
-                  exit 1
-                  ;;
-              esac
-
-          done < <(find . -type f -name '*-comparison.txt' -print) 
-
-          if [ $toPublish -ge 1 ]; then
-              echo "Will publish..."
-          else
-              echo "Will not publish..."
-          fi
-
-          echo toPublish=$toPublish >> "$GITHUB_OUTPUT"
-
+          
+          # Initialize hasChanged to 0
+          hasChanged=0
+          
+          # Download the remote dependency report
+          remoteRepoUrl=https://nexus.mekomsolutions.net/repository/maven-public
+          
+          # Get the list of sub-modules
+          modules=$(mvn -q $MAVEN_ARGS --also-make exec:exec -Dexec.executable="echo" -Dexec.args='${project.build.directory}')
+          
+          echo "List of modules to check for dependency changes:"
+          echo "$modules"
+          
+          # Build the local dependency report
+          echo "Compile a local dependency report..."
+          mvn --batch-mode --no-transfer-progress clean $MAVEN_PHASE $MAVEN_ARGS
+          
+          # Iterate over each module
+          for module in $modules; do
+            modulePath=$(echo $module | sed 's/\\/\//g')
+          
+            # Navigate to the module directory
+            cd $(dirname $modulePath)
+          
+            # Get the groupId, artifactId, and version
+            groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+            artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+            version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+            classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
+            artifact="${groupId}":"${artifactId}":"${version}":txt:"${classifier}"
+          
+            filename=${artifactId}-${version}-${classifier}.txt
+            absolutePath=/tmp/$filename
+          
+            # Remove previous file if any
+            rm -f "${absolutePath}"
+          
+            # Fetch the remote dependency report
+            echo "Fetch remote dependency report ${artifact}..."
+            set +e
+            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
+            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
+            set -e
+          
+            # If no dependency report was fetched, create an empty one.
+            if [ ! -f "$absolutePath" ]; then
+              echo "Remote dependency file is not found at '${absolutePath}'. Creating an empty one and continue."
+              touch "${absolutePath}"
+            else
+              echo "Remote dependency file saved at '${absolutePath}'."
+            fi
+          
+            # Compare the 2 files. Will exit with 0 if no change, 1 if changes
+            echo "Compare both dependency reports..."
+            set +e
+            if [ -f ./target/"${filename}" ]; then
+              diff "${absolutePath}" ./target/"${filename}"
+              diff_rc=$?
+            
+            if [ $diff_rc -eq 0 ]; then
+              echo "No dependency change. Exit (0)"
+            elif [ $diff_rc -eq 1 ]; then
+              echo "One or more dependency has changed. Exit (1)"
+               # Set hasChanged to 1 (true) if a difference is found
+              hasChanged=1
+            else
+              echo "Unknown error occurred."
+            fi
+            else
+              echo "Local dependency report is not found at './target/${filename}'."
+              echo "Dependency changes not tracked. Exit (0)"
+            fi
+            set -e
+          
+            # Navigate back to the parent directory
+            cd -
+          done
+          
+          # Export hasChanged to be used in later steps of the GitHub workflow
+          echo hasChanged=$hasChanged >> "$GITHUB_OUTPUT"
           exit 0
-
 
   build:
     needs: check-for-dependency-changes
-    if: ${{ needs.check-for-dependency-changes.outputs.toPublish >= '1' }}
+    if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
