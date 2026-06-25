@@ -48,6 +48,22 @@ on:
         required: false
         type: string
         default: 'ozone-it'
+      # --- Build the calling repo (PR changes) before running the suite ---
+      build-source-repo:
+        description: 'Check out and `mvn install` the calling repo so the integration tests run against the PR changes (resolved from the local ~/.m2)'
+        required: false
+        type: boolean
+        default: false
+      source-repo-path:
+        description: 'Path to check out the calling (source) repo into'
+        required: false
+        type: string
+        default: 'source-repo'
+      source-repo-maven-args:
+        description: 'Maven args used when installing the source repo into the local repository'
+        required: false
+        type: string
+        default: '-DskipTests'
 
     secrets:
       NEXUS_USERNAME:
@@ -63,13 +79,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone Integration Tests Repository
+      # 1. Check out the PR code of the repo that called this workflow.
+      #    No `repository`/`ref` -> defaults to the caller repo at the triggering
+      #    commit (the PR merge ref for pull_request events).
+      - name: Checkout source repo (PR changes)
+        if: ${{ inputs.build-source-repo }}
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.integration-tests-repo }}
-          ref: ${{ inputs.integration-tests-branch }}
-          path: ${{ inputs.integration-tests-path }}
+          path: ${{ inputs.source-repo-path }}
 
+      # 2. JDK + Maven cache (needed before any mvn invocation).
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
         with:
@@ -77,6 +96,7 @@ jobs:
           distribution: ${{ inputs.java-distribution }}
           cache: 'maven'
 
+      # 3. Maven settings so installs can authenticate to Nexus for private deps.
       - name: Set settings.xml
         if: ${{ inputs.use-secrets }}
         uses: s4u/maven-settings-action@v3.0.0
@@ -113,6 +133,23 @@ jobs:
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             }]
 
+      # 4. Build & install the PR artifacts into the local Maven repo (~/.m2) so
+      #    the integration-tests build below resolves them instead of Nexus.
+      - name: Build and install source repo (PR changes)
+        if: ${{ inputs.build-source-repo }}
+        run: |
+          cd ${{ inputs.source-repo-path }}
+          mvn --batch-mode --no-transfer-progress clean install ${{ inputs.source-repo-maven-args }}
+
+      # 5. Now clone the integration tests repository.
+      - name: Clone Integration Tests Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.integration-tests-repo }}
+          ref: ${{ inputs.integration-tests-branch }}
+          path: ${{ inputs.integration-tests-path }}
+
+      # 6. Docker login for the containers the suite spins up.
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         if: ${{ inputs.login-docker }}
@@ -120,6 +157,7 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      # 7. Run the integration tests (resolves the PR snapshot from ~/.m2).
       - name: Build with Maven
         run: |
           cd ${{ inputs.integration-tests-path }}
