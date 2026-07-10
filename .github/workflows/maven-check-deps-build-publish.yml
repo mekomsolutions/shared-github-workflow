@@ -70,7 +70,7 @@ on:
 
 
 jobs:
-  build:
+  build-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -116,7 +116,7 @@ jobs:
         run: "mvn --batch-mode --no-transfer-progress clean deploy -Pcheck-deps ${{ inputs.maven-args }}"
 
   notify-ocd3:
-    needs: build
+    needs: build-publish
     if: ${{ inputs.notify-ocd3 }}
     uses: mekomsolutions/shared-github-workflow/.github/workflows/ocd3-notify.yml@main
     with:
