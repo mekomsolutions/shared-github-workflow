@@ -160,37 +160,11 @@ jobs:
             classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
             artifact="${groupId}":"${artifactId}":"${version}":txt:"${classifier}"
           
-            filename=${artifactId}-${version}-${classifier}.txt
-            absolutePath=/tmp/$filename
-          
-            # Remove previous file if any
-            rm -f "${absolutePath}"
-          
-            # Fetch the remote dependency report
-            echo "Fetch remote dependency report ${artifact}..."
-            set +e
-            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
-            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
-            set -e
-          
-            # If no dependency report was fetched, create an empty one.
-            if [ ! -f "$absolutePath" ]; then
-              echo "Remote dependency file is not found at '${absolutePath}'. Creating an empty one and continue."
-              touch "${absolutePath}"
-            else
-              echo "Remote dependency file saved at '${absolutePath}'."
-            fi
-          
-            # Compare the 2 files. Will exit with 0 if no change, 1 if changes
-            echo "Compare both dependency reports..."
-            set +e
-            if [ -f ./target/"${filename}" ]; then
-              diff "${absolutePath}" ./target/"${filename}"
-              diff_rc=$?
-            
-            if [ $diff_rc -eq 0 ]; then
+            reportFile=./target/${artifactId}-${version}-${classifier}.txt
+            comparisonResult =$(cat $reportFile)
+            if [ $comparisonResult -eq 0 ]; then
               echo "No dependency change. Exit (0)"
-            elif [ $diff_rc -eq 1 ]; then
+            elif [ $comparisonResult -eq 1 ]; then
               echo "One or more dependency has changed. Exit (1)"
                # Set hasChanged to 1 (true) if a difference is found
               hasChanged=1
@@ -198,7 +172,7 @@ jobs:
               echo "Unknown error occurred."
             fi
             else
-              echo "Local dependency report is not found at './target/${filename}'."
+              echo "Local dependency report is not found at '${reportFile}'."
               echo "Dependency changes not tracked. Exit (0)"
             fi
             set -e
