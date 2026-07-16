@@ -146,10 +146,6 @@ jobs:
           echo "List of modules to check for dependency changes:"
           echo "$modules"
           
-          # Build the local dependency report
-          echo "Compile a local dependency report..."
-          mvn --batch-mode --no-transfer-progress clean $MAVEN_PHASE $MAVEN_ARGS
-          
           # Iterate over each module
           for module in $modules; do
             modulePath=$(echo $module | sed 's/\\/\//g')
