@@ -163,7 +163,7 @@ jobs:
             set +e
             reportFile=./target/${artifactId}-${version}-${classifier}.txt
             if [ -f $reportFile ]; then
-              comparisonResult = $(cat $reportFile)
+              comparisonResult=$(cat $reportFile)
             
             if [ $comparisonResult -eq 0 ]; then
               echo "No dependency change. Exit (0)"
