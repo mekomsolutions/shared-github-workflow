@@ -160,14 +160,20 @@ jobs:
             classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
             artifact="${groupId}":"${artifactId}":"${version}":txt:"${classifier}"
           
+            set +e
             reportFile=./target/${artifactId}-${version}-${classifier}.txt
-            comparisonResult =$(cat $reportFile)
+            if [ -f $reportFile ]; then
+              comparisonResult = $(cat $reportFile)
+            
             if [ $comparisonResult -eq 0 ]; then
               echo "No dependency change. Exit (0)"
             elif [ $comparisonResult -eq 1 ]; then
               echo "One or more dependency has changed. Exit (1)"
                # Set hasChanged to 1 (true) if a difference is found
               hasChanged=1
+            elif [ $comparisonResult -eq -1 ]; then
+              echo "Looks like this is the first build. Exit (1)"
+              hasChanged=-1
             else
               echo "Unknown error occurred."
             fi
@@ -187,7 +193,7 @@ jobs:
 
   build:
     needs: check-for-dependency-changes
-    if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
+    if: ${{ needs.check-for-dependency-changes.outputs.hasChanged != '0' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
