@@ -157,11 +157,9 @@ jobs:
             groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
             artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
             version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-            classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
-            artifact="${groupId}":"${artifactId}":"${version}":txt:"${classifier}"
           
             set +e
-            reportFile=./target/${artifactId}-${version}-${classifier}.txt
+            reportFile=./target/${artifactId}-${version}-comparison.txt
             if [ -f $reportFile ]; then
               comparisonResult=$(cat $reportFile)
             
