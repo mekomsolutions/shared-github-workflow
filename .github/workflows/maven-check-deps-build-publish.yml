@@ -167,14 +167,14 @@ jobs:
              # Set hasChanged to 1 (true) if a difference is found
             hasChanged=1
           elif [ "$comparisonResult" -eq -1 ]; then
-            echo "Looks like this is the first build. Exit (1)"
+            echo "Looks like this is the first build. Exit (-1)"
             hasChanged=-1
           else
             echo "Unknown error occurred."
           fi
           else
             echo "Local dependency report is not found at '${reportFile}'."
-            echo "Dependency changes not tracked. Exit (0)"
+            echo "Dependency changes not tracked"
           fi
           set -e
           
