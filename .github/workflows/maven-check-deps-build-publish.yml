@@ -173,7 +173,6 @@ jobs:
         id: compareDependencyChanges
         env:
           MAVEN_ARGS: ${{ inputs.check-deps-maven-args }}
-          MAVEN_PHASE: ${{ inputs.check-deps-maven-phase }}
         shell: bash
         run: |
           #!/usr/bin/env bash
