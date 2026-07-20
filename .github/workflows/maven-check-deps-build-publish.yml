@@ -137,9 +137,6 @@ jobs:
           # Initialize hasChanged to 0
           hasChanged=0
           
-          # Download the remote dependency report
-          remoteRepoUrl=https://nexus.mekomsolutions.net/repository/maven-public
-          
           # Get the list of sub-modules
           modules=$(mvn -q $MAVEN_ARGS --also-make exec:exec -Dexec.executable="echo" -Dexec.args='${project.build.directory}')
           
