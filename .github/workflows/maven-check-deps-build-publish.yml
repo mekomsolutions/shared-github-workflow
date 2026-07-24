@@ -121,11 +121,14 @@ jobs:
               "password": "${{ secrets.NEXUS_PASSWORD }}"
             }]
 
+      - name: Build and publish if dependencies changed
+        run: "mvn --batch-mode --no-transfer-progress clean deploy -Pcheck-deps ${{ inputs.maven-args }}"
+
       - name: Check for dependency changes
         id: compareDependencyChanges
+        if: ${{ inputs.notify-ocd3 }}
         env:
           MAVEN_ARGS: ${{ inputs.check-deps-maven-args }}
-          MAVEN_PHASE: ${{ inputs.check-deps-maven-phase }}
         shell: bash
         run: |
           #!/usr/bin/env bash
@@ -134,148 +137,54 @@ jobs:
           # Initialize hasChanged to 0
           hasChanged=0
           
-          # Download the remote dependency report
-          remoteRepoUrl=https://nexus.mekomsolutions.net/repository/maven-public
-          
           # Get the list of sub-modules
           modules=$(mvn -q $MAVEN_ARGS --also-make exec:exec -Dexec.executable="echo" -Dexec.args='${project.build.directory}')
           
           echo "List of modules to check for dependency changes:"
           echo "$modules"
           
-          # Build the local dependency report
-          echo "Compile a local dependency report..."
-          mvn --batch-mode --no-transfer-progress clean $MAVEN_PHASE $MAVEN_ARGS
+          moduleCount=$(wc -l <<< "$modules")
+          if [ "$moduleCount" -eq 1 ]; then
+            reportSuffix=comparison
+          else
+            reportSuffix=comparison-all
+          fi
           
-          # Iterate over each module
-          for module in $modules; do
-            modulePath=$(echo $module | sed 's/\\/\//g')
-          
-            # Navigate to the module directory
-            cd $(dirname $modulePath)
-          
-            # Get the groupId, artifactId, and version
-            groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
-            artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
-            version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-            classifier=$(mvn help:evaluate -Dexpression=dependencyReportClassifier -q -DforceStdout)
-            artifact="${groupId}":"${artifactId}":"${version}":txt:"${classifier}"
-          
-            filename=${artifactId}-${version}-${classifier}.txt
-            absolutePath=/tmp/$filename
-          
-            # Remove previous file if any
-            rm -f "${absolutePath}"
-          
-            # Fetch the remote dependency report
-            echo "Fetch remote dependency report ${artifact}..."
-            set +e
-            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:get -DremoteRepositories=${remoteRepoUrl} -Dartifact=${artifact} -Dtransitive=false
-            mvn --batch-mode --no-transfer-progress org.apache.maven.plugins:maven-dependency-plugin:3.6.0:copy -Dartifact=${artifact} -DoutputDirectory=/tmp/ -Dmdep.useBaseVersion=true
-            set -e
-          
-            # If no dependency report was fetched, create an empty one.
-            if [ ! -f "$absolutePath" ]; then
-              echo "Remote dependency file is not found at '${absolutePath}'. Creating an empty one and continue."
-              touch "${absolutePath}"
-            else
-              echo "Remote dependency file saved at '${absolutePath}'."
-            fi
-          
-            # Compare the 2 files. Will exit with 0 if no change, 1 if changes
-            echo "Compare both dependency reports..."
-            set +e
-            if [ -f ./target/"${filename}" ]; then
-              diff "${absolutePath}" ./target/"${filename}"
-              diff_rc=$?
-            
-            if [ $diff_rc -eq 0 ]; then
-              echo "No dependency change. Exit (0)"
-            elif [ $diff_rc -eq 1 ]; then
-              echo "One or more dependency has changed. Exit (1)"
-               # Set hasChanged to 1 (true) if a difference is found
-              hasChanged=1
-            else
-              echo "Unknown error occurred."
-            fi
-            else
-              echo "Local dependency report is not found at './target/${filename}'."
-              echo "Dependency changes not tracked. Exit (0)"
-            fi
-            set -e
-          
-            # Navigate back to the parent directory
-            cd -
-          done
+          # Get the groupId, artifactId, and version
+          groupId=$(mvn help:evaluate -Dexpression=project.groupId -q -DforceStdout)
+          artifactId=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        
+          set +e
+          reportFile=./target/${artifactId}-${version}-${reportSuffix}.txt
+          if [ -f $reportFile ]; then
+            comparisonResult=$(cat $reportFile)
+        
+          if [ "$comparisonResult" -eq 0 ]; then
+            echo "No dependency change. Exit (0)"
+          elif [ "$comparisonResult" -eq 1 ]; then
+            echo "One or more dependency has changed. Exit (1)"
+             # Set hasChanged to 1 (true) if a difference is found
+            hasChanged=1
+          elif [ "$comparisonResult" -eq -1 ]; then
+            echo "Looks like this is the first build. Exit (-1)"
+            hasChanged=-1
+          else
+            echo "Unknown error occurred."
+          fi
+          else
+            echo "Local dependency report is not found at '${reportFile}'."
+            echo "Dependency changes not tracked"
+          fi
+          set -e
           
           # Export hasChanged to be used in later steps of the GitHub workflow
           echo hasChanged=$hasChanged >> "$GITHUB_OUTPUT"
           exit 0
 
-  build:
-    needs: check-for-dependency-changes
-    if: ${{ needs.check-for-dependency-changes.outputs.hasChanged == '1' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK ${{ inputs.java-version }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java-version }}
-          distribution: ${{ inputs.java-distribution }}
-          cache: 'maven'
-
-      - name: Set settings.xml
-        uses: s4u/maven-settings-action@v3.0.0
-        with:
-          servers: |
-            [{
-              "id": "mks-private-repo",
-              "username": "${{ secrets.NEXUS_USERNAME }}",
-              "password": "${{ secrets.NEXUS_PASSWORD }}"
-            },
-            {
-              "id": "mks-nexus-public-snapshots",
-              "username": "${{ secrets.NEXUS_USERNAME }}",
-              "password": "${{ secrets.NEXUS_PASSWORD }}"
-            },
-            {
-              "id": "mks-nexus-public-releases",
-              "username": "${{ secrets.NEXUS_USERNAME }}",
-              "password": "${{ secrets.NEXUS_PASSWORD }}"
-            },
-            {
-              "id": "mks-nexus-private-snapshots",
-              "username": "${{ secrets.NEXUS_USERNAME }}",
-              "password": "${{ secrets.NEXUS_PASSWORD }}"
-            },
-            {
-              "id": "mks-nexus-private-releases",
-              "username": "${{ secrets.NEXUS_USERNAME }}",
-              "password": "${{ secrets.NEXUS_PASSWORD }}"
-            }]
-
-      - name: Build
-        run: "mvn --batch-mode --no-transfer-progress clean package ${{ inputs.maven-args }}"
-
-  publish:
-    needs: build
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
-    with:
-      java-version: ${{ inputs.java-version }}
-      java-distribution: ${{ inputs.java-distribution }}
-      maven-args: ${{ inputs.maven-args }}
-      upload-artifacts: ${{ inputs.upload-artifacts }}
-      artifact-path: ${{ inputs.artifact-path }}
-      artifact-name: ${{ inputs.artifact-name }}
-    secrets:
-      NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-      NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-
   notify-ocd3:
-    needs: publish
-    if: ${{ inputs.notify-ocd3 }}
+    needs: check-for-dependency-changes
+    if: ${{ inputs.notify-ocd3 && needs.check-for-dependency-changes.outputs.hasChanged != '0' }}
     uses: mekomsolutions/shared-github-workflow/.github/workflows/ocd3-notify.yml@main
     with:
       webhook-url: ${{ inputs.ocd3-webhook-url }}
