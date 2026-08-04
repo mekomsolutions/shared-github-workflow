@@ -11,6 +11,7 @@ This workflow is triggered when it is called from another workflow.
 - `context`: Path to the build context. Default is `.`.
 - `dockerfile`: Path to the Dockerfile to build. Default is `Dockerfile`.
 - `image-name`: Name of the image to build. This is a required input.
+- `build-args`: List of build-time variables, newline-delimited (same format as `docker/build-push-action`'s `build-args`). Optional.
 
 ## Secrets
 
@@ -43,6 +44,8 @@ jobs:
       context: . # Optional default value: .
       dockerfile: Dockerfile # Optional default value: Dockerfile
       image-name: my-image # Required
+      build-args: | # Optional
+        PIPELINE=streaming
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}

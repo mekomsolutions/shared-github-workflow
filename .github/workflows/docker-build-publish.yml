@@ -36,6 +36,10 @@ on:
         description: "Version to tag the image with. Default is 'latest'"
         required: false
         type: string
+      build-args:
+        description: 'List of build-time variables, newline-delimited (same format as docker/build-push-action build-args)'
+        required: false
+        type: string
 
     secrets:
         DOCKER_HUB_USERNAME:
@@ -109,3 +113,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.prep.outputs.tags }}
+          build-args: ${{ inputs.build-args }}
