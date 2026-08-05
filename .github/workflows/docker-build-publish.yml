@@ -36,6 +36,11 @@ on:
         description: "Version to tag the image with. Default is 'latest'"
         required: false
         type: string
+      latest-tag:
+        description: "Whether to also tag the image 'latest', in addition to the version tag. Set to false to publish only the version tag"
+        required: false
+        type: boolean
+        default: true
       build-args:
         description: 'List of build-time variables, newline-delimited (same format as docker/build-push-action build-args)'
         required: false
@@ -80,12 +85,15 @@ jobs:
         shell: bash
         run: |
           DOCKER_IMAGE=${{ secrets.DOCKER_HUB_USERNAME }}/${{ inputs.image-name }}
-          VERSION=latest
-          # Tag the image with latest.
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
+          IMAGE_VERSION=${{ !inputs.image-version && steps.get_version.outputs.version || inputs.image-version }}
 
-          # Tag the image with version.
-          TAGS="${TAGS},${DOCKER_IMAGE}:${{ !inputs.image-version && steps.get_version.outputs.version || inputs.image-version}}"
+          # Always tag the image with its version.
+          TAGS="${DOCKER_IMAGE}:${IMAGE_VERSION}"
+
+          # Also tag it 'latest', unless the caller opted out via latest-tag: false.
+          if [ "${{ inputs.latest-tag }}" = "true" ]; then
+            TAGS="${TAGS},${DOCKER_IMAGE}:latest"
+          fi
 
           # Set output parameters.
           echo ::set-output name=tags::${TAGS}
