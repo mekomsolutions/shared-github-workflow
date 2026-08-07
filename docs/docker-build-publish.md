@@ -11,6 +11,7 @@ This workflow is triggered when it is called from another workflow.
 - `context`: Path to the build context. Default is `.`.
 - `dockerfile`: Path to the Dockerfile to build. Default is `Dockerfile`.
 - `image-name`: Name of the image to build. This is a required input.
+- `latest-tag`: Whether to also tag the image `latest`, in addition to the version tag. Default is `true`; set to `false` to publish only the version tag.
 - `build-args`: List of build-time variables, newline-delimited (same format as `docker/build-push-action`'s `build-args`). Optional.
 
 ## Secrets
@@ -20,7 +21,7 @@ This workflow is triggered when it is called from another workflow.
 
 ## Jobs
 
-1. `build-publish`: Builds and publishes the Docker image. The image is tagged with `latest` and the version from the Maven project. The image is built for `linux/amd64` and `linux/arm64` platforms.
+1. `build-publish`: Builds and publishes the Docker image. The image is tagged with the version from the Maven project, and with `latest` unless `latest-tag: false` is set. The image is built for `linux/amd64` and `linux/arm64` platforms.
 
 ## Usage
 
@@ -44,6 +45,7 @@ jobs:
       context: . # Optional default value: .
       dockerfile: Dockerfile # Optional default value: Dockerfile
       image-name: my-image # Required
+      latest-tag: false # Optional default value: true -- set false to skip the 'latest' tag
       build-args: | # Optional
         PIPELINE=streaming
     secrets:
